@@ -1,1 +1,2 @@
 # Web-Page-Layout
+This webpage features a distance calculator tool embedded within an interactive map. Users can input IDs for specific points of interest to calculate the distance to the nearest paved road. The map utilizes the Leaflet JavaScript library for map rendering and interaction. The calculator section allows users to enter the ID of their desired location and receive instant distance calculations. The layout is designed with a clean and user-friendly interface, with subtle color schemes and modern styling for an enhanced user experience.
