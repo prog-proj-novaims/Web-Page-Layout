@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Distance Calculator</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="">  
+
+  <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin=""></script>  
+
+  <style>
+    #map {
+      width: 100%;
+      height: 900px;
+    }
+    .info {
+      padding: 6px 8px;
+      font: 14px/16px Arial, Helvetica, sans-serif;
+      background: #bfe5ff;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+      border-radius: 5px;
+    }
+    .info h4 {
+      margin: 0 0 5px;
+      color: #777;
+    }
+    .legend {
+      text-align: left;
+      line-height: 18px;
+      color: #555;
+    }
+    .legend i {
+      width: 18px;
+      height: 18px;
+      float: left;
+      margin-right: 8px;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+  <div style="position: absolute; z-index: 1000; top: 10px; left: 10px; background: floralwhite  ; padding: 10px; border-radius: 5px;">
+    <h4>Distance Calculator</h4>
+    <form id="distanceForm">
+      <label for="point1">Point 1:</label>
+      <input type="text" id="point1" placeholder="Enter id" required>
+      <br>
+      <button type="button" onclick="calculateDistance()">Calculate Distance</button>
+      <p id="result"></p>
+    </form>
+  </div>
+
+//This section contains JavaScript code that interacts with the HTML document.
+
+  <script type="text/javascript" src="./data/country.js"></script>
+
+  <script type="text/javascript">
+    var map = L.map("map").setView([33.7, 73.2], 3);
+
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+
+    function calculateDistance() {
+      // Add your distance calculation logic here
+      // Example:
+      var point1 = document.getElementById('point1').value;
+
+      // Calculate distance and update result
+      var resultElement = document.getElementById('result');
+      resultElement.innerHTML = 'Distance: Your Calculation Result Here';
+    }
+  </script>
+</body>
+</html>
