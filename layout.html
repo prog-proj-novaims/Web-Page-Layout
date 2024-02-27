@@ -5,14 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Distance Calculator</title>
 
-<!-- Link to Leaflet CSS -->
-
+  <!-- Link to Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="">  
- 
-  <!-- Script tag for Leaflet library -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" /> 
 
+  <!-- Link to Leaflet JavaScript -->
   <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin=""></script>  
+  <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
 
+  <!-- Styling -->
   <style>
     /* Styling for the map container */
     #map {
@@ -47,23 +48,37 @@
 </head>
 
 <body>
+  <!-- Map container -->
   <div id="map"></div>
-  <div style="position: absolute; z-index: 1000; top: 10px; left: 10px; background: floralwhite  ; padding: 10px; border-radius: 5px;">
+
+  <!-- Information container for distance calculation -->
+  <div style="position: absolute; z-index: 1000; top: 10px; left: 1147px; background: floralwhite; padding: 10px; border-radius: 5px;">
     <h4>Distance Calculator</h4>
     <form id="distanceForm">
-      <label for="point1">Point 1:</label>
+      <label for="point1">Point:</label>
       <input type="text" id="point1" placeholder="Enter id" required>
       <br>
       <button type="button" onclick="calculateDistance()">Calculate Distance</button>
-      <p id="result"></p>
-    </form>
     <br>
-    <label for="toggleMap">Disable Map Background:</label>
+    <h4>Draw Polygon</h4>
+    <label for="polygonID">ID:</label>
+      <input type="text" id="polygonID" placeholder="Enter ID" required>
+      <br>
+    <label for="polygonName">Name:</label>
+      <input type="text" id="polygonName" placeholder="Enter name" required>
+      <br>
+      <label for="polygonDescription">Description:</label>
+      <input type="text" id="polygonDescription" placeholder="Enter description" required>
+      <br>
+      <button type="button" onclick="submitPolygon()">Submit Polygon</button>
+      <br>
+      <br>
+      <label for="toggleMap">Disable Map Background:</label>
     <input type="checkbox" id="toggleMap" onclick="toggleMapBackground()">
+    </form>
   </div>
 
-<!-- JavaScript code -->
-
+  <!-- JavaScript code -->
   <script type="text/javascript">
     // Initialize Leaflet map with default view
     var map = L.map("map").setView([33.7, 73.2], 3);
@@ -72,8 +87,65 @@
       maxZoom: 19,
       attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(map);
-    // Function to calculate distance
+    
+    // Add Leaflet Draw functionality
+    var drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
 
+    var drawControl = new L.Control.Draw({
+      edit: {
+        featureGroup: drawnItems,
+        poly: {
+          allowIntersection: false
+        }
+      },
+      draw: {
+        polygon: {
+          allowIntersection: false,
+          showArea: true
+        },
+        circle: false,
+        marker: false
+      }
+    });
+
+    map.addControl(drawControl);
+
+    map.on('draw:created', function (e) {
+      var layer = e.layer;
+      drawnItems.addLayer(layer);
+    });
+
+    // Function to handle the submission of the polygon to the server
+    function submitPolygon() {
+      var geojson = drawnItems.toGeoJSON();
+      var name = document.getElementById('polygonName').value;
+      var description = document.getElementById('polygonDescription').value;
+
+      // Make a POST request to add the polygon to the server
+      fetch('http://127.0.0.1:5000/add_origin_polygon', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8'
+        },
+        body: JSON.stringify({
+          geom: geojson.geometry,
+          name: name,
+          description: description
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert(data.message);
+        // Clear the drawn items layer after submission
+        drawnItems.clearLayers();
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+    }
+
+    // Function to calculate distance
     function calculateDistance() {
       var point1 = document.getElementById('point1').value;
 
@@ -103,7 +175,7 @@
                                      Polygon ID: ${data.polygon_id}<br>
                                      Route Distance: ${data.route_km} km`;
 
-        // Store the data in the same format
+          // Store the data in the same format
           var dataInSameFormat = {
             description: data.description,
             name: data.name,
