@@ -5,15 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Distance Calculator</title>
 
+<!-- Link to Leaflet CSS -->
+
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css" integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin="">  
+ 
+  <!-- Script tag for Leaflet library -->
 
   <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js" integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin=""></script>  
 
   <style>
+    /* Styling for the map container */
     #map {
       width: 100%;
       height: 900px;
     }
+    /* Styling for information box */
     .info {
       padding: 6px 8px;
       font: 14px/16px Arial, Helvetica, sans-serif;
@@ -51,28 +57,77 @@
       <button type="button" onclick="calculateDistance()">Calculate Distance</button>
       <p id="result"></p>
     </form>
+    <br>
+    <label for="toggleMap">Disable Map Background:</label>
+    <input type="checkbox" id="toggleMap" onclick="toggleMapBackground()">
   </div>
 
-//This section contains JavaScript code that interacts with the HTML document.
-
-  <script type="text/javascript" src="./data/country.js"></script>
+<!-- JavaScript code -->
 
   <script type="text/javascript">
+    // Initialize Leaflet map with default view
     var map = L.map("map").setView([33.7, 73.2], 3);
-
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // Add base layer to the map
+    var baseLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(map);
+    // Function to calculate distance
 
     function calculateDistance() {
-      // Add your distance calculation logic here
-      // Example:
       var point1 = document.getElementById('point1').value;
 
-      // Calculate distance and update result
-      var resultElement = document.getElementById('result');
-      resultElement.innerHTML = 'Distance: Your Calculation Result Here';
+      // Fetch the route information from the server
+      fetch(`http://127.0.0.1:5000/get_route_info/${point1}`)
+        .then(response => response.json())
+        .then(data => {
+          // Use the returned data to update the route information
+          var routeGeom = JSON.parse(data.route_geom);
+          var origGeom = JSON.parse(data.origin_geom);
+
+          // Create a GeoJSON layer and add it to the map
+          var geojsonLayer = L.geoJSON(routeGeom).addTo(map);
+          var geojsonLayer2 = L.geoJSON(origGeom, {
+            style: {
+              color: 'red'
+            }
+          }).addTo(map);
+
+          // Zoom to the extent of the GeoJSON layer
+          map.fitBounds(geojsonLayer.getBounds());
+
+          // Display all the information retrieved by the API
+          var resultElement = document.getElementById('result');
+          resultElement.innerHTML = `Description: ${data.description}<br>
+                                     Name: ${data.name}<br>
+                                     Polygon ID: ${data.polygon_id}<br>
+                                     Route Distance: ${data.route_km} km`;
+
+        // Store the data in the same format
+          var dataInSameFormat = {
+            description: data.description,
+            name: data.name,
+            origin_geom: data.origin_geom,
+            polygon_id: data.polygon_id,
+            route_geom: data.route_geom,
+            route_km: data.route_km
+          };
+
+          // Now you can use the dataInSameFormat as needed
+          console.log(dataInSameFormat);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    }
+
+    function toggleMapBackground() {
+      // Toggle the map background layer
+      if (map.hasLayer(baseLayer)) {
+        map.removeLayer(baseLayer);
+      } else {
+        baseLayer.addTo(map);
+      }
     }
   </script>
 </body>
